@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".TrailsApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -12,8 +13,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Szlaki"
         tools:targetApi="31">
+        <service
+            android:name=".StoperService"
+            android:enabled="true"
+            android:exported="true"></service>
+
         <activity
             android:name=".DetailActivity"
+            android:parentActivityName=".MainActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

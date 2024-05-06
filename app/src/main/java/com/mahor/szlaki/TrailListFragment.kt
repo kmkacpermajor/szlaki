@@ -1,17 +1,19 @@
 package com.mahor.szlaki
 
-import android.R
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.fragment.app.ListFragment
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 
 class TrailListFragment : ListFragment() {
+    private lateinit var trailRepository: TrailRepository
     interface Listener {
         fun itemClicked(id: Long)
     }
@@ -21,6 +23,7 @@ class TrailListFragment : ListFragment() {
     override fun onAttach(context: Context) {
         super.onAttach(requireContext())
         listener = context as Listener
+        trailRepository = (requireActivity().application as TrailsApplication).repository
     }
 
     override fun onListItemClick(listView: ListView, itemView: View, position: Int, id: Long) {
@@ -31,14 +34,24 @@ class TrailListFragment : ListFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val names = arrayOfNulls<String>(TrailList().trails.size)
-        for (i in names.indices) {
-            names[i] = TrailList().trails[i].name
-        }
-        val adapter: ArrayAdapter<String?> = ArrayAdapter(
-            inflater.context, R.layout.simple_list_item_1, names
-        )
-        setListAdapter(adapter)
+        val trails = trailRepository.getAllTrails()
+
+        val recyclerView =
+            inflater.inflate(R.layout.fragment_tab1, container, false) as RecyclerView
+        val adapter = CaptionedImagesAdapter()
+        adapter.listener = (object : CaptionedImagesAdapter.Listener {
+            override fun onClick(position: Int) {
+                val intent = Intent(
+                    activity,
+                    DetailActivity::class.java
+                )
+                intent.putExtra("id", position)
+                activity!!.startActivity(intent)
+            }
+        })
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = GridLayoutManager(context, 2)
+
 
         return super.onCreateView(inflater, container, savedInstanceState)
     }
