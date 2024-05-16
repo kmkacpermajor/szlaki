@@ -4,10 +4,14 @@ import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class TrailRepository(private val trailDao: TrailDao) {
 
-    val allWords: Flow<List<Trail>> = trailDao.getAllTrails()
+    val allTrails: Flow<List<Trail>> = trailDao.getAllTrails()
+    val easyTrails: Flow<List<Trail>> = trailDao.getDifficultyTrails("easy")
+    val mediumTrails: Flow<List<Trail>> = trailDao.getDifficultyTrails("medium")
+    val hardTrails: Flow<List<Trail>> = trailDao.getDifficultyTrails("hard")
 
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
@@ -15,10 +19,13 @@ class TrailRepository(private val trailDao: TrailDao) {
         trailDao.insert(trail)
     }
 
-    fun getAllTrails(): LiveData<List<Trail>> {
-        return trailDao.getAllTrails().asLiveData()
+    fun getTrailById(id: Long): Flow<Trail> {
+        return trailDao.getTrailById(id)
     }
-    fun getTrailById(trailId: Long): LiveData<Trail> {
-        return trailDao.getTrailById(trailId).asLiveData()
+
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun updateTrail(trail: Trail) {
+        trailDao.update(trail)
     }
 }

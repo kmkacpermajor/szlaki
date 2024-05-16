@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("kotlin-kapt")
+    id("kotlin-android")
 }
 
 android {
@@ -40,12 +41,14 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.room.common)
-    implementation(libs.androidx.room.ktx)
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.common.java8)
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("androidx.fragment:fragment-ktx:1.7.0")
+    implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
     implementation(libs.androidx.recyclerview)
     kapt("com.github.bumptech.glide:compiler:4.16.0")
     testImplementation(libs.junit)

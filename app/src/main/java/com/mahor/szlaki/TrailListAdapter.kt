@@ -1,112 +1,108 @@
-//package com.mahor.szlaki
-//
-//import android.view.LayoutInflater
-//import android.view.View
-//import android.view.ViewGroup
-//import android.widget.TextView
-//import androidx.recyclerview.widget.DiffUtil
-//import androidx.recyclerview.widget.ListAdapter
-//import androidx.recyclerview.widget.RecyclerView
-//
-//class TrailListAdapter : ListAdapter<Trail, TrailListAdapter.TrailViewHolder>(TrailsComparator()) {
-//
-//    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrailViewHolder {
-//        return TrailViewHolder.create(parent)
-//    }
-//
-//    override fun onBindViewHolder(holder: TrailViewHolder, position: Int) {
-//        val current = getItem(position)
-//        holder.bind(current.name)
-//    }
-//
-//    class TrailViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-//        private val trailItemView: TextView = itemView.findViewById(R.id.textView)
-//
-//        fun bind(text: String?) {
-//            trailItemView.text = text
-//        }
-//
-//        companion object {
-//            fun create(parent: ViewGroup): TrailViewHolder {
-//                val view: View = LayoutInflater.from(parent.context)
-//                    .inflate(R.layout.recyclerview_item, parent, false)
-//                return TrailViewHolder(view)
-//            }
-//        }
-//    }
-//
-//    class TrailsComparator : DiffUtil.ItemCallback<Trail>() {
-//        override fun areItemsTheSame(oldItem: Trail, newItem: Trail): Boolean {
-//            return oldItem === newItem
-//        }
-//
-//        override fun areContentsTheSame(oldItem: Trail, newItem: Trail): Boolean {
-//            return oldItem.name == newItem.name
-//        }
-//    }
-//}
 package com.mahor.szlaki
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnClickListener
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.widget.Filter
+import android.widget.Filterable
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.cardview.widget.CardView
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import kotlin.coroutines.coroutineContext
 
-class TrailListAdapter(private val trails: List<Trail>) : ListAdapter<Trail, TrailListAdapter.ViewHolder>(TrailsComparator()) {
-    lateinit var listener: Listener
 
-    interface Listener {
-        fun onClick(position: Int)
+class TrailListAdapter(private val listener: OnTrailItemClickListener) :
+    ListAdapter<Trail, TrailListAdapter.TrailViewHolder>(TrailsComparator()), Filterable {
+
+    private var trailListFull: List<Trail> = ArrayList()
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrailViewHolder {
+        return TrailViewHolder.create(parent, listener)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.card_captioned_image, parent, false) as CardView
-        return ViewHolder(view)
+    override fun onBindViewHolder(holder: TrailViewHolder, position: Int) {
+        val current = getItem(position)
+        holder.bind(current.id.toLong(), current.name, current.photoUrl)
+
+        val animation = AnimationUtils.loadAnimation(holder.itemView.context, R.anim.in_recycler)
+        holder.itemView.startAnimation(animation)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val trail = getItem(position)
-        holder.bind(trail)
-    }
+    class TrailViewHolder(itemView: View, private val listener: OnTrailItemClickListener) : RecyclerView.ViewHolder(itemView) {
+        private val trailItemView: TextView = itemView.findViewById(R.id.info_text)
+        private val trailPhotoView: ImageView = itemView.findViewById(R.id.info_image)
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val linearLayout: LinearLayout = itemView.findViewById(R.id.linear_layout)
-        private val imageView: ImageView = itemView.findViewById(R.id.info_image)
-        private val textView: TextView = itemView.findViewById(R.id.info_text)
+        fun bind(id: Long, text: String, url: String) {
+            trailItemView.text = text
+            val options: RequestOptions = RequestOptions()
+                .centerCrop()
+                .placeholder(R.mipmap.ic_launcher_round)
+                .error(R.mipmap.ic_launcher_round)
+            Glide.with(itemView).load(url).apply(options).into(trailPhotoView)
 
-        init {
-            linearLayout.setOnClickListener {
-                listener.onClick(adapterPosition)
+            itemView.setOnClickListener {
+                listener.onTrailItemClick(id)
             }
         }
 
-        fun bind(trail: Trail) {
-            Glide.with(itemView.context)
-                .load(trail.photoUrl)
-                .into(imageView)
-            textView.text = trail.name
-            imageView.contentDescription = trail.description
+        companion object {
+            fun create(parent: ViewGroup, listener: OnTrailItemClickListener): TrailViewHolder {
+                val view: View = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.recyclerview_item, parent, false)
+                return TrailViewHolder(view, listener)
+            }
         }
     }
 
     class TrailsComparator : DiffUtil.ItemCallback<Trail>() {
         override fun areItemsTheSame(oldItem: Trail, newItem: Trail): Boolean {
-            return oldItem === newItem
+            return oldItem.id == newItem.id
         }
 
         override fun areContentsTheSame(oldItem: Trail, newItem: Trail): Boolean {
-            return oldItem.name == newItem.name && oldItem.photoUrl == newItem.photoUrl
+            return oldItem.name == newItem.name
         }
     }
 
-    override fun getItemCount(): Int {
-        return trails.size
+    override fun getFilter(): Filter {
+        return trailFilter
+    }
+
+    private val trailFilter: Filter = object : Filter() {
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            val filteredList: MutableList<Trail> = ArrayList()
+            if (constraint == null || constraint.isEmpty()) {
+                filteredList.addAll(trailListFull)
+            } else {
+                val filterPattern = constraint.toString().toLowerCase().trim()
+                for (item in trailListFull) {
+                    if (item.name.toLowerCase().contains(filterPattern) ||
+                        item.description.toLowerCase().contains(filterPattern)
+                    ) {
+                        filteredList.add(item)
+                    }
+                }
+            }
+            val results = FilterResults()
+            results.values = filteredList
+            return results
+        }
+
+        override fun publishResults(constraint: CharSequence?, results: FilterResults) {
+            submitList(results.values as List<Trail>)
+        }
+    }
+
+    fun setTrailList(trailList: List<Trail>) {
+        trailListFull = ArrayList(trailList)
+        submitList(trailList)
     }
 }

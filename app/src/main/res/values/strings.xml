@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Szlaki</string>
+    <string name="app_name">Szlaki turystyczne</string>
     <string name="detail_button">Pokaż</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -8,6 +8,16 @@
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="reset">Reset</string>
+    <string name="easy">Łatwe</string>
+    <string name="medium">Średnie</string>
+    <string name="hard">Trudne</string>
+    <string name="user_name">Szlaki turystyczne</string>
+    <string name="user_mail">Kacper Majorkowski</string>
+    <string name="czym_jest_szlak">Czym jest szlak?</string>
+    <string name="open_drawer">Otwórz szufladę nawigacyjną</string>
+    <string name="close_drawer">Zamknij szufladę nawigacyjną</string>
+    <string name="save">Zapisz</string>
+    <string name="takePhotoLabel">Zrób zdjęcie</string>
 
     <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <!-- Customize your theme here. -->

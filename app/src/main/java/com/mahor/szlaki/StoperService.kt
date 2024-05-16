@@ -7,6 +7,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 class StoperService : Service() {
     private var seconds = 0
@@ -62,5 +67,15 @@ class StoperService : Service() {
         val minutes = seconds % 3600 / 60
         val secs = seconds % 60
         return String.format("%d:%02d:%02d", hours, minutes, secs)
+    }
+
+    fun saveTime(trailRepository: TrailRepository, trailId: Long) {
+        val minutes = seconds / 60
+        GlobalScope.launch(Dispatchers.IO) {
+            trailRepository.getTrailById(trailId).first().let { trail ->
+                val updatedTrail = trail.copy(walk_minutes = minutes)
+                trailRepository.updateTrail(updatedTrail)
+            }
+        }
     }
 }

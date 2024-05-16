@@ -8,10 +8,9 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.mahor.szlaki.Trail
 
 
-class CaptionedImagesAdapter(private val trails: List<Trail>) : RecyclerView.Adapter<CaptionedImagesAdapter.ViewHolder>() {
+class CaptionedImagesAdapter(private var trails: List<Trail>) : RecyclerView.Adapter<CaptionedImagesAdapter.ViewHolder>() {
     private lateinit var cardView: CardView
     lateinit var listener: Listener
 
